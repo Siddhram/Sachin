@@ -1,0 +1,51 @@
+{
+  "expo": {
+    "name": "Hidden Spots",
+    "slug": "hidden-spots",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.hiddenspots.app",
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "This app needs access to location to show nearby hidden spots.",
+        "NSLocationAlwaysAndWhenInUseUsageDescription": "This app needs access to location to show nearby hidden spots.",
+        "NSCameraUsageDescription": "This app needs access to camera to take photos of hidden spots.",
+        "NSPhotoLibraryUsageDescription": "This app needs access to photo library to select images for hidden spots."
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#FFFFFF"
+      },
+      "package": "com.hiddenspots.app",
+      "permissions": [
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION",
+        "CAMERA",
+        "READ_EXTERNAL_STORAGE",
+        "WRITE_EXTERNAL_STORAGE"
+      ]
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      "expo-location",
+      "expo-image-picker",
+      "expo-camera",
+      "expo-media-library"
+    ]
+  }
+} 
