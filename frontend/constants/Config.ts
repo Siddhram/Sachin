@@ -1,6 +1,6 @@
 export const CONFIG = {
   // Backend API Configuration
-  API_BASE_URL: 'http://192.168.74.222:5001',
+  API_BASE_URL: 'http://192.168.31.229:5001',
   API_ENDPOINTS: {
     // Auth endpoints
     AUTH: {
@@ -77,6 +77,9 @@ export const CONFIG = {
     { id: 'Romantic', label: 'Romantic', icon: 'heart' },
     { id: 'Serene', label: 'Serene', icon: 'leaf' },
     { id: 'Creative', label: 'Creative', icon: 'brush' },
+    { id: 'Historic', label: 'Historic', icon: 'time' },
+    { id: 'Spiritual', label: 'Spiritual', icon: 'star' },
+    { id: 'Adventure', label: 'Adventure', icon: 'compass' },
   ],
   
   // Sort options

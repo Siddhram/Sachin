@@ -14,6 +14,8 @@ import { useAuth } from '../../contexts/AuthContext';
 import { apiService } from '../../services/api';
 import Colors from '../../constants/Colors';
 import { useColorScheme } from '../../hooks/useColorScheme';
+import * as ImagePicker from 'expo-image-picker';
+import type { Spot } from '../../services/api';
 
 export default function ProfileScreen() {
   const { user, logout } = useAuth();
@@ -24,10 +26,13 @@ export default function ProfileScreen() {
     totalComments: 0,
     totalVisits: 0,
   });
-  const [mySpots, setMySpots] = useState([]);
-  const [favorites, setFavorites] = useState([]);
+  const [mySpots, setMySpots] = useState<Spot[]>([]);
+  const [favorites, setFavorites] = useState<Spot[]>([]);
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
+
+  // Animated default profile picture URL
+  const defaultProfilePic = 'https://media.giphy.com/media/26ufnwz3wDUli7GU0/giphy.gif';
 
   const loadUserData = async () => {
     try {
@@ -38,7 +43,11 @@ export default function ProfileScreen() {
         apiService.getFavorites(),
       ]);
       
-      setUserStats(profile.stats || { totalSpots: 0, totalComments: 0, totalVisits: 0 });
+      setUserStats({
+        totalSpots: spots && spots.spots ? spots.spots.length : 0,
+        totalComments: profile.stats?.totalComments || 0,
+        totalVisits: profile.stats?.totalVisits || 0,
+      });
       setMySpots(spots);
       setFavorites(favs);
     } catch (error) {
@@ -81,6 +90,44 @@ export default function ProfileScreen() {
     );
   };
 
+  const handleChangeProfilePicture = async () => {
+    try {
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 0.8,
+      });
+      if (!result.canceled && result.assets && result.assets.length > 0) {
+        const image = result.assets[0];
+        // Upload to Cloudinary
+        const data = new FormData();
+        data.append('file', {
+          uri: image.uri,
+          name: 'profile.jpg',
+          type: 'image/jpeg',
+        } as any);
+        data.append('upload_preset', 'ml_default');
+        data.append('cloud_name', 'drxliiejo');
+        const res = await fetch('https://api.cloudinary.com/v1_1/drxliiejo/image/upload', {
+          method: 'POST',
+          body: data,
+        });
+        const cloudinary = await res.json();
+        if (cloudinary.secure_url) {
+          await apiService.updateProfile({ profilePicture: cloudinary.secure_url });
+          await loadUserData();
+          Alert.alert('Success', 'Profile picture updated!');
+        } else {
+          throw new Error('Image upload failed');
+        }
+      }
+    } catch (error) {
+      console.error('Profile picture update error:', error);
+      Alert.alert('Error', 'Failed to update profile picture');
+    }
+  };
+
   const StatCard = ({ title, value, icon }: { title: string; value: number; icon: string }) => (
     <View style={[styles.statCard, { backgroundColor: colors.surface }]}>
       <Ionicons name={icon as any} size={24} color={colors.primary} />
@@ -88,6 +135,50 @@ export default function ProfileScreen() {
       <Text style={[styles.statTitle, { color: colors.textSecondary }]}>{title}</Text>
     </View>
   );
+
+  // Hardcoded Whisplore favorites (for demo)
+  const whisploreFavorites: Spot[] = [
+    {
+      _id: 'whisplore1',
+      name: 'Utila Fort Ruins',
+      category: 'Adventure',
+      description: '',
+      coordinates: { type: 'Point', coordinates: [0, 0] },
+      address: {},
+      story: '',
+      tips: [],
+      images: [],
+      ratings: { vibe: { average: 0, count: 0 }, safety: { average: 0, count: 0 }, uniqueness: { average: 0, count: 0 }, crowdLevel: { average: 0, count: 0 } },
+      bestTimeToVisit: { timeOfDay: '', season: '' },
+      accessibility: { wheelchairAccessible: false, parkingAvailable: false, publicTransport: false },
+      createdBy: {} as any,
+      overallRating: 0,
+      visitCount: 0,
+      isActive: true,
+      createdAt: '',
+      updatedAt: '',
+    },
+    {
+      _id: 'whisplore2',
+      name: 'Sunset Point',
+      category: 'Romantic',
+      description: '',
+      coordinates: { type: 'Point', coordinates: [0, 0] },
+      address: {},
+      story: '',
+      tips: [],
+      images: [],
+      ratings: { vibe: { average: 0, count: 0 }, safety: { average: 0, count: 0 }, uniqueness: { average: 0, count: 0 }, crowdLevel: { average: 0, count: 0 } },
+      bestTimeToVisit: { timeOfDay: '', season: '' },
+      accessibility: { wheelchairAccessible: false, parkingAvailable: false, publicTransport: false },
+      createdBy: {} as any,
+      overallRating: 0,
+      visitCount: 0,
+      isActive: true,
+      createdAt: '',
+      updatedAt: '',
+    },
+  ];
 
   if (!user) {
     return (
@@ -110,10 +201,11 @@ export default function ProfileScreen() {
           {user.profilePicture ? (
             <Image source={{ uri: user.profilePicture }} style={styles.profileImage} />
           ) : (
-            <View style={[styles.profileImagePlaceholder, { backgroundColor: colors.primary }]}>
-              <Ionicons name="person" size={40} color="white" />
-            </View>
+            <Image source={{ uri: defaultProfilePic }} style={styles.profileImage} />
           )}
+          <TouchableOpacity style={{ marginTop: 8 }} onPress={handleChangeProfilePicture}>
+            <Text style={{ color: colors.primary, fontWeight: 'bold' }}>Change Profile Picture</Text>
+          </TouchableOpacity>
         </View>
         
         <View style={styles.profileInfo}>
@@ -176,20 +268,29 @@ export default function ProfileScreen() {
         {favorites.length > 0 ? (
           <ScrollView horizontal showsHorizontalScrollIndicator={false}>
             {favorites.slice(0, 3).map((spot) => (
-              <View key={spot._id} style={[styles.spotCard, { backgroundColor: colors.surface }]}>
+              <View key={spot._id} style={[styles.spotCard, { backgroundColor: colors.surface }]}> 
                 <Text style={[styles.spotName, { color: colors.text }]} numberOfLines={1}>
                   {spot.name}
                 </Text>
-                <Text style={[styles.spotCategory, { color: colors.primary }]}>
+                <Text style={[styles.spotCategory, { color: colors.primary }]}> 
                   {spot.category}
                 </Text>
               </View>
             ))}
           </ScrollView>
         ) : (
-          <Text style={[styles.emptyText, { color: colors.textSecondary }]}>
-            You haven't favorited any spots yet
-          </Text>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+            {whisploreFavorites.map((spot) => (
+              <View key={spot._id} style={[styles.spotCard, { backgroundColor: colors.surface }]}> 
+                <Text style={[styles.spotName, { color: colors.text }]} numberOfLines={1}>
+                  {spot.name}
+                </Text>
+                <Text style={[styles.spotCategory, { color: colors.primary }]}> 
+                  {spot.category}
+                </Text>
+              </View>
+            ))}
+          </ScrollView>
         )}
       </View>
 

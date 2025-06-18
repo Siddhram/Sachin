@@ -1,4 +1,4 @@
-import axios, { AxiosInstance, AxiosResponse } from 'axios';
+import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { CONFIG } from '../constants/Config';
 
@@ -23,7 +23,7 @@ export interface Spot {
   _id: string;
   name: string;
   description: string;
-  category: 'Romantic' | 'Serene' | 'Creative';
+  category: string;
   coordinates: {
     type: string;
     coordinates: [number, number]; // [longitude, latitude]
@@ -120,7 +120,7 @@ export interface ApiResponse<T> {
 
 // API Service Class
 class ApiService {
-  private api: AxiosInstance;
+  private api: any;
   private token: string | null = null;
 
   constructor() {
@@ -136,7 +136,7 @@ class ApiService {
 
     // Request interceptor to add auth token
     this.api.interceptors.request.use(
-      async (config) => {
+      async (config: any) => {
         console.log('🚀 API Request:', config.method?.toUpperCase(), config.url);
         console.log('📡 Base URL:', CONFIG.API_BASE_URL);
         console.log('🔗 Full URL:', (config.baseURL || '') + (config.url || ''));
@@ -149,7 +149,7 @@ class ApiService {
         }
         return config;
       },
-      (error) => {
+      (error: any) => {
         console.error('❌ Request Error:', error);
         return Promise.reject(error);
       }
@@ -157,11 +157,11 @@ class ApiService {
 
     // Response interceptor to handle errors
     this.api.interceptors.response.use(
-      (response) => {
+      (response: any) => {
         console.log('✅ API Response:', response.status, response.config.url);
         return response;
       },
-      async (error) => {
+      async (error: any) => {
         console.error('❌ API Error:', {
           message: error.message,
           code: error.code,
@@ -186,8 +186,8 @@ class ApiService {
     username: string;
     email: string;
     password: string;
-  }): Promise<AuthResponse> {
-    const response = await this.api.post<AuthResponse>(
+  }): Promise<any> {
+    const response = await this.api.post(
       CONFIG.API_ENDPOINTS.AUTH.REGISTER,
       userData
     );
@@ -198,8 +198,8 @@ class ApiService {
   async login(credentials: {
     email: string;
     password: string;
-  }): Promise<AuthResponse> {
-    const response = await this.api.post<AuthResponse>(
+  }): Promise<any> {
+    const response = await this.api.post(
       CONFIG.API_ENDPOINTS.AUTH.LOGIN,
       credentials
     );
@@ -207,8 +207,8 @@ class ApiService {
     return response.data;
   }
 
-  async getProfile(): Promise<User> {
-    const response = await this.api.get<{ user: User }>(
+  async getProfile(): Promise<any> {
+    const response = await this.api.get(
       CONFIG.API_ENDPOINTS.AUTH.PROFILE
     );
     return response.data.user;
@@ -218,8 +218,8 @@ class ApiService {
     username?: string;
     bio?: string;
     preferences?: any;
-  }): Promise<User> {
-    const response = await this.api.put<{ user: User }>(
+  }): Promise<any> {
+    const response = await this.api.put(
       CONFIG.API_ENDPOINTS.AUTH.UPDATE_PROFILE,
       profileData
     );
@@ -246,11 +246,9 @@ class ApiService {
     longitude?: number;
     latitude?: number;
     maxDistance?: number;
-  }): Promise<ApiResponse<Spot[]>> {
-    const response = await this.api.get<{
-      spots: Spot[];
-      pagination: any;
-    }>(CONFIG.API_ENDPOINTS.SPOTS.LIST, { params });
+  }): Promise<any> {
+    const response = await this.api.get(
+      CONFIG.API_ENDPOINTS.SPOTS.LIST, { params });
     return {
       data: response.data.spots,
       pagination: response.data.pagination,
@@ -262,16 +260,16 @@ class ApiService {
     latitude: number;
     maxDistance?: number;
     category?: string;
-  }): Promise<Spot[]> {
-    const response = await this.api.get<{ spots: Spot[] }>(
+  }): Promise<any> {
+    const response = await this.api.get(
       CONFIG.API_ENDPOINTS.SPOTS.NEARBY,
       { params }
     );
     return response.data.spots;
   }
 
-  async getSpot(id: string): Promise<Spot> {
-    const response = await this.api.get<{ spot: Spot }>(
+  async getSpot(id: string): Promise<any> {
+    const response = await this.api.get(
       CONFIG.API_ENDPOINTS.SPOTS.DETAIL.replace(':id', id)
     );
     return response.data.spot;
@@ -308,55 +306,58 @@ class ApiService {
       publicId: string;
       caption?: string;
     }>;
-  }): Promise<Spot> {
-    const response = await this.api.post<{ spot: Spot }>(
+  }): Promise<any> {
+    const response = await this.api.post(
       CONFIG.API_ENDPOINTS.SPOTS.CREATE,
       spotData
     );
     return response.data.spot;
   }
 
-  async updateSpot(id: string, spotData: FormData): Promise<Spot> {
-    const response = await this.api.put<{ spot: Spot }>(
+  async updateSpot(id: string, spotData: FormData): Promise<any> {
+    const response = await this.api.put(
       CONFIG.API_ENDPOINTS.SPOTS.UPDATE.replace(':id', id),
-      spotData,
-      {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      }
+      spotData
     );
     return response.data.spot;
   }
 
-  async deleteSpot(id: string): Promise<void> {
-    await this.api.delete(CONFIG.API_ENDPOINTS.SPOTS.DELETE.replace(':id', id));
+  async deleteSpot(id: string): Promise<any> {
+    await this.api.delete(
+      CONFIG.API_ENDPOINTS.SPOTS.DELETE.replace(':id', id)
+    );
   }
 
-  async visitSpot(id: string): Promise<void> {
-    await this.api.post(CONFIG.API_ENDPOINTS.SPOTS.VISIT.replace(':id', id));
+  async visitSpot(id: string): Promise<any> {
+    await this.api.post(
+      CONFIG.API_ENDPOINTS.SPOTS.VISIT.replace(':id', id)
+    );
   }
 
-  async favoriteSpot(id: string): Promise<void> {
-    await this.api.post(CONFIG.API_ENDPOINTS.SPOTS.FAVORITE.replace(':id', id));
+  async favoriteSpot(id: string): Promise<any> {
+    await this.api.post(
+      CONFIG.API_ENDPOINTS.SPOTS.FAVORITE.replace(':id', id)
+    );
   }
 
-  async unfavoriteSpot(id: string): Promise<void> {
-    await this.api.delete(CONFIG.API_ENDPOINTS.SPOTS.UNFAVORITE.replace(':id', id));
+  async unfavoriteSpot(id: string): Promise<any> {
+    await this.api.post(
+      CONFIG.API_ENDPOINTS.SPOTS.UNFAVORITE.replace(':id', id)
+    );
   }
 
-  async getFavorites(): Promise<Spot[]> {
-    const response = await this.api.get<{ spots: Spot[] }>(
+  async getFavorites(): Promise<any> {
+    const response = await this.api.get(
       CONFIG.API_ENDPOINTS.SPOTS.FAVORITES
     );
-    return response.data.spots;
+    return response.data;
   }
 
-  async getMySpots(): Promise<Spot[]> {
-    const response = await this.api.get<{ spots: Spot[] }>(
+  async getMySpots(): Promise<any> {
+    const response = await this.api.get(
       CONFIG.API_ENDPOINTS.SPOTS.MY_SPOTS
     );
-    return response.data.spots;
+    return response.data;
   }
 
   async rateSpot(spotId: string, rating: {
@@ -364,9 +365,9 @@ class ApiService {
     safety?: number;
     uniqueness?: number;
     crowdLevel?: number;
-  }): Promise<void> {
+  }): Promise<any> {
     await this.api.post(
-      CONFIG.API_ENDPOINTS.SPOTS.DETAIL.replace(':id', spotId) + '/rate',
+      `${CONFIG.API_ENDPOINTS.SPOTS.DETAIL.replace(':id', spotId)}/rate`,
       rating
     );
   }
@@ -375,11 +376,10 @@ class ApiService {
   async getComments(params?: {
     page?: number;
     limit?: number;
-  }): Promise<ApiResponse<Comment[]>> {
-    const response = await this.api.get<{
-      comments: Comment[];
-      pagination: any;
-    }>(CONFIG.API_ENDPOINTS.COMMENTS.LIST, { params });
+  }): Promise<any> {
+    const response = await this.api.get(
+      CONFIG.API_ENDPOINTS.COMMENTS.LIST, { params }
+    );
     return {
       data: response.data.comments,
       pagination: response.data.pagination,
@@ -389,69 +389,53 @@ class ApiService {
   async getSpotComments(spotId: string, params?: {
     page?: number;
     limit?: number;
-  }): Promise<ApiResponse<Comment[]>> {
-    const response = await this.api.get<{
-      comments: Comment[];
-      pagination: any;
-    }>(CONFIG.API_ENDPOINTS.COMMENTS.SPOT_COMMENTS.replace(':spotId', spotId), { params });
+  }): Promise<any> {
+    const response = await this.api.get(
+      CONFIG.API_ENDPOINTS.COMMENTS.SPOT_COMMENTS.replace(':spotId', spotId),
+      { params }
+    );
     return {
       data: response.data.comments,
       pagination: response.data.pagination,
     };
   }
 
-  async createComment(commentData: FormData): Promise<Comment> {
-    const response = await this.api.post<{ comment: Comment }>(
+  async createComment(commentData: FormData): Promise<any> {
+    const response = await this.api.post(
       CONFIG.API_ENDPOINTS.COMMENTS.CREATE,
-      commentData,
-      {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      }
+      commentData
     );
     return response.data.comment;
   }
 
-  async updateComment(id: string, commentData: FormData): Promise<Comment> {
-    const response = await this.api.put<{ comment: Comment }>(
+  async updateComment(id: string, commentData: FormData): Promise<any> {
+    const response = await this.api.put(
       CONFIG.API_ENDPOINTS.COMMENTS.UPDATE.replace(':id', id),
-      commentData,
-      {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      }
+      commentData
     );
     return response.data.comment;
   }
 
-  async deleteComment(id: string): Promise<void> {
-    await this.api.delete(CONFIG.API_ENDPOINTS.COMMENTS.DELETE.replace(':id', id));
+  async deleteComment(id: string): Promise<any> {
+    await this.api.delete(
+      CONFIG.API_ENDPOINTS.COMMENTS.DELETE.replace(':id', id)
+    );
   }
 
   // Health Check
-  async healthCheck(): Promise<{ status: string; message: string }> {
-    console.log('🏥 Testing health check...');
-    try {
-      const response = await this.api.get(CONFIG.API_ENDPOINTS.HEALTH);
-      console.log('✅ Health check successful:', response.data);
-      return response.data;
-    } catch (error) {
-      console.error('❌ Health check failed:', error);
-      throw error;
-    }
+  async healthCheck(): Promise<any> {
+    const response = await this.api.get(
+      CONFIG.API_ENDPOINTS.HEALTH
+    );
+    return response.data;
   }
 
   // Test connection
   async testConnection(): Promise<boolean> {
     try {
-      console.log('🧪 Testing API connection...');
       await this.healthCheck();
-      console.log('✅ API connection successful');
       return true;
-    } catch (error) {
-      console.error('❌ API connection failed:', error);
+    } catch {
       return false;
     }
   }

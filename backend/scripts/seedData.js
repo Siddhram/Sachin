@@ -1,96 +1,210 @@
 const mongoose = require('mongoose');
-const User = require('../models/User');
 const Spot = require('../models/Spot');
+const User = require('../models/User');
 require('dotenv').config();
 
-// Sample data for Gwalior hidden spots
-const sampleSpots = [
-  {
-    name: "Sunset Point at Gwalior Fort Backside",
-    description: "A hidden viewpoint behind the majestic Gwalior Fort offering breathtaking sunset views over the city. This secluded spot is perfect for romantic evenings and peaceful contemplation.",
+const spots = [
+    {
+      name: "Bateshwar Temple Complex",
+      description: "An offbeat cluster of nearly 200 ancient Pratihara‑era temples nestled in Morena, often overlooked by travellers.",
+      category: "Historic",
+      coordinates: {
+        type: "Point",
+        coordinates: [78.0115, 26.5300]
+      },
+      address: {
+        street: "Bateshwar Road",
+        city: "Morena",
+        state: "Madhya Pradesh",
+        country: "India"
+      },
+      story: "Rediscovered in recent decades, the restored temples dating from the 8th–10th century AD by ASI offer a quiet, mystic ambience far from city noise. The nearly 80 standing temples across the hillside make a dramatic archaeological site.",
+      tips: [
+        "Start early morning to avoid heat",
+        "Wear sturdy shoes—paths are uneven",
+        "Bring water and snacks",
+        "Combine this with Padavali & Chausath Yogini nearby"
+      ],
+      bestTimeToVisit: {
+        timeOfDay: "Morning",
+        season: "Winter to Spring"
+      },
+      accessibility: {
+        wheelchairAccessible: false,
+        parkingAvailable: true,
+        publicTransport: false
+      },
+      tags: ["archaeology", "ruins", "Pratihara", "offbeat", "temples"],
+      images: [{
+        url: "https://images.unsplash.com/photo-xyz-bateshwar?w=800&h=600&fit=crop",
+        publicId: "bateshwar-temple-complex",
+        caption: "Sunrise over the temples at Bateshwar"
+      }]
+    },
+    {
+      name: "Chausath Yogini Temple, Morena",
+      description: "A rare circular tantric temple of 64 yoginis perched on a small hill near Morena.",
+      category: "Spiritual",
+      coordinates: {
+        type: "Point",
+        coordinates: [78.0045, 26.5230]
+      },
+      address: {
+        street: "Chausath Yogini Hill",
+        city: "Morena",
+        state: "Madhya Pradesh",
+        country: "India"
+      },
+      story: "This enigmatic 10th‑century shrine dedicated to 64 yoginis offers a surreal, eerie atmosphere, especially during early hours. It's still one of the few surviving yogini temples in India.",
+      tips: [
+        "Best light early morning or late afternoon",
+        "Respect the sacred nature of the site",
+        "Combine visit with Bateshwar and Padavali Fortress"
+      ],
+      bestTimeToVisit: {
+        timeOfDay: "Morning",
+        season: "Any"
+      },
+      accessibility: {
+        wheelchairAccessible: false,
+        parkingAvailable: false,
+        publicTransport: false
+      },
+      tags: ["tantra", "yogini", "offbeat", "spiritual", "historic"],
+      images: [{
+        url: "https://images.unsplash.com/photo-xyz-yogini?w=800&h=600&fit=crop",
+        publicId: "chausath-yogini-morena",
+        caption: "The circular layout of 64 chambers at Yogini Temple"
+      }]
+    },
+    {
+      name: "Siddhachal Caves, Gwalior Fort",
+      description: "Hidden Jain rock‑cut colossal statues carved into the cliff beneath Gwalior Fort's Urvahi Gate.",
+      category: "Historic",
+      coordinates: {
+        type: "Point",
+        coordinates: [78.1640, 26.2165]
+      },
+      address: {
+        street: "Urvahi Gate, Gwalior Fort",
+        city: "Gwalior",
+        state: "Madhya Pradesh",
+        country: "India"
+      },
+      story: "Less visited than the fort and palace, this cliff has impressive 14th–15th‑century Jain statues – some reaching 50 ft. Their defacement and later restorations tell layered tales of history.",
+      tips: [
+        "Walk down from Urvahi Gate to explore the carvings",
+        "Bring a guide to interpret iconography",
+        "Quiet time just after opening is best"
+      ],
+      bestTimeToVisit: {
+        timeOfDay: "Afternoon",
+        season: "Winter"
+      },
+      accessibility: {
+        wheelchairAccessible: false,
+        parkingAvailable: true,
+        publicTransport: true
+      },
+      tags: ["Jainism", "rock‑cut", "sculpture", "fort", "hidden"],
+      images: [{
+        url: "https://images.unsplash.com/photo-xyz-siddhachal?w=800&h=600&fit=crop",
+        publicId: "siddhachal-caves-gwalior",
+        caption: "Giant Jain statues carved into the fort wall"
+      }]
+    },
+    {
+      name: "Utila Fort Ruins",
+      description: "A lesser‑known fortified hillock east of Gwalior with old ramparts and quiet, uncrowded ruins.",
+      category: "Adventure",
+      coordinates: {
+        type: "Point",
+        coordinates: [78.2567, 26.2200]
+      },
+      address: {
+        street: "Utila Village",
+        city: "Gwalior District",
+        state: "Madhya Pradesh",
+        country: "India"
+      },
+      story: "Built in 1740 by the Gohad rulers, Utila Fort offers peaceful walking trails, quiet towers, and panoramic countryside views, with almost no tourist footfall.",
+      tips: [
+        "Carry drinking water; no facilities on site",
+        "Great spot for sunset photography",
+        "Reach by bike or 4x4 for adventure"
+      ],
+      bestTimeToVisit: {
+        timeOfDay: "Evening",
+        season: "Winter"
+      },
+      accessibility: {
+        wheelchairAccessible: false,
+        parkingAvailable: false,
+        publicTransport: false
+      },
+      tags: ["ruins", "fort", "views", "offbeat", "adventure"],
+      images: [{
+        url: "https://images.unsplash.com/photo-xyz-utila?w=800&h=600&fit=crop",
+        publicId: "utila-fort-ruins",
+        caption: "Ruined walls and valley views at Utila Fort"
+      }],
+    name: "Sunset Point at Gwalior Fort",
+    description: "A hidden viewpoint offering breathtaking sunset views over the historic Gwalior Fort and the city below. Perfect for romantic evenings and photography.",
     category: "Romantic",
     coordinates: {
       type: "Point",
-      coordinates: [78.1489, 26.2183] // Gwalior Fort area
+      coordinates: [78.1642, 26.2183] // Gwalior coordinates
     },
     address: {
-      street: "Behind Gwalior Fort",
+      street: "Gwalior Fort",
       city: "Gwalior",
       state: "Madhya Pradesh",
-      country: "India",
-      postalCode: "474008"
+      country: "India"
     },
-    images: [
-      {
-        url: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=600&fit=crop",
-        publicId: "hidden-spots/sunset-point-1",
-        caption: "Golden hour at the hidden sunset point"
-      },
-      {
-        url: "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=800&h=600&fit=crop",
-        publicId: "hidden-spots/sunset-point-2",
-        caption: "Panoramic view of Gwalior city"
-      }
-    ],
-    story: "I discovered this magical spot during my evening walks around the fort. The way the sun sets behind the ancient walls creates an ethereal atmosphere that's hard to describe. It's become my go-to place for romantic dates and quiet reflection. The best part? Most tourists don't know about it, so you often have the entire view to yourself.",
+    story: "Discovered this magical spot during a solo trip to Gwalior Fort. While most tourists head to the main viewpoints, this hidden corner offers the most spectacular sunset views. The golden hour light hitting the ancient fort walls creates an unforgettable atmosphere. Perfect for couples seeking a romantic escape or photographers looking for unique angles.",
     tips: [
-      "Visit during golden hour (5:30-6:30 PM) for the best lighting",
-      "Bring a picnic blanket for comfortable seating",
-      "Weekdays are less crowded than weekends",
-      "Don't forget your camera - the views are Instagram-worthy"
+      "Visit 30 minutes before sunset for the best lighting",
+      "Bring a blanket to sit comfortably",
+      "Best visited during winter months for clearer skies",
+      "Weekdays are less crowded than weekends"
     ],
-    tags: ["sunset", "romantic", "fort", "viewpoint", "peaceful"],
     bestTimeToVisit: {
       timeOfDay: "Evening",
-      season: "Any"
+      season: "Winter"
     },
     accessibility: {
       wheelchairAccessible: false,
       parkingAvailable: true,
       publicTransport: true
     },
-    ratings: {
-      vibe: { average: 4.8, count: 12 },
-      safety: { average: 4.5, count: 12 },
-      uniqueness: { average: 4.7, count: 12 },
-      crowdLevel: { average: 2.1, count: 12 }
-    }
+    tags: ["sunset", "fort", "romantic", "photography", "historic"],
+    images: [{
+      url: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=600&fit=crop",
+      publicId: "sunset-point-gwalior",
+      caption: "Breathtaking sunset view from the hidden point"
+    }]
   },
   {
-    name: "Hidden Garden near Jai Vilas Palace",
-    description: "A serene garden tucked away behind the grand Jai Vilas Palace, featuring rare flowers, ancient trees, and peaceful walking paths. Perfect for nature lovers and those seeking tranquility.",
+    name: "Secret Garden at Jai Vilas Palace",
+    description: "A tranquil garden hidden behind the grand Jai Vilas Palace, featuring rare flowers, peaceful walking paths, and a small meditation area.",
     category: "Serene",
     coordinates: {
       type: "Point",
-      coordinates: [78.1648, 26.2041] // Near Jai Vilas Palace
+      coordinates: [78.1589, 26.2156] // Near Jai Vilas Palace
     },
     address: {
-      street: "Behind Jai Vilas Palace",
+      street: "Jai Vilas Palace Grounds",
       city: "Gwalior",
       state: "Madhya Pradesh",
-      country: "India",
-      postalCode: "474002"
+      country: "India"
     },
-    images: [
-      {
-        url: "https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=800&h=600&fit=crop",
-        publicId: "hidden-spots/garden-1",
-        caption: "Peaceful garden pathways"
-      },
-      {
-        url: "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=800&h=600&fit=crop",
-        publicId: "hidden-spots/garden-2",
-        caption: "Ancient trees and rare flowers"
-      }
-    ],
-    story: "This hidden gem was a chance discovery during my morning walks. The garden is maintained by the palace staff but is rarely visited by tourists. The variety of flowers and the peaceful atmosphere make it perfect for meditation, reading, or simply enjoying nature's beauty. The ancient trees provide perfect shade during hot afternoons.",
+    story: "This hidden garden is a true oasis of peace in the bustling city. Tucked away behind the magnificent Jai Vilas Palace, it's often overlooked by visitors. The garden features a beautiful collection of native and exotic plants, with winding stone paths and several quiet corners perfect for meditation or reading. The sound of birds and the gentle rustling of leaves create a perfect escape from city life.",
     tips: [
-      "Best visited in the morning (6-9 AM) for bird watching",
-      "Bring a book or meditation mat",
-      "Respect the garden's tranquility - keep noise levels low",
-      "Spring (March-April) is the best time for flowers"
+      "Visit early morning for the best bird watching",
+      "Bring a book or meditation cushion",
+      "Avoid weekends when palace tours are busy",
+      "Spring is the best time to see flowers in bloom"
     ],
-    tags: ["garden", "nature", "peaceful", "meditation", "flowers"],
     bestTimeToVisit: {
       timeOfDay: "Morning",
       season: "Spring"
@@ -100,199 +214,134 @@ const sampleSpots = [
       parkingAvailable: true,
       publicTransport: true
     },
-    ratings: {
-      vibe: { average: 4.6, count: 8 },
-      safety: { average: 4.8, count: 8 },
-      uniqueness: { average: 4.3, count: 8 },
-      crowdLevel: { average: 1.5, count: 8 }
-    }
+    tags: ["garden", "peaceful", "meditation", "nature", "palace"],
+    images: [{
+      url: "https://images.unsplash.com/photo-1585320806297-9794b3e4eeae?w=800&h=600&fit=crop",
+      publicId: "secret-garden-palace",
+      caption: "Peaceful garden paths and meditation areas"
+    }]
   },
   {
-    name: "Street Art Corner in Old City",
-    description: "A vibrant corner in Gwalior's old city featuring stunning street art and murals that tell the story of the city's culture and heritage. A paradise for photographers and art enthusiasts.",
+    name: "Artists' Corner at Lashkar Bazaar",
+    description: "A vibrant alley in the old city where local artists gather to paint, sketch, and share their creative work. Colorful murals and street art everywhere.",
     category: "Creative",
     coordinates: {
       type: "Point",
-      coordinates: [78.1529, 26.2156] // Old City area
+      coordinates: [78.1620, 26.2200] // Lashkar area
     },
     address: {
-      street: "Old City Market Area",
+      street: "Artists' Alley, Lashkar Bazaar",
       city: "Gwalior",
       state: "Madhya Pradesh",
-      country: "India",
-      postalCode: "474001"
+      country: "India"
     },
-    images: [
-      {
-        url: "https://images.unsplash.com/photo-1541961017774-22349e4a1262?w=800&h=600&fit=crop",
-        publicId: "hidden-spots/street-art-1",
-        caption: "Colorful street art murals"
-      },
-      {
-        url: "https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=800&h=600&fit=crop",
-        publicId: "hidden-spots/street-art-2",
-        caption: "Cultural heritage through art"
-      }
-    ],
-    story: "I stumbled upon this artistic corner while exploring the old city's narrow lanes. Local artists have transformed this once-dull wall into a canvas that celebrates Gwalior's rich cultural heritage. The murals change periodically, so each visit offers something new. It's become a favorite spot for my photography sessions and creative inspiration.",
+    story: "This hidden gem in the heart of Lashkar Bazaar is where Gwalior's creative souls come together. The walls are covered in stunning murals, and local artists often set up their easels to capture the essence of the old city. It's a perfect spot for art lovers, photographers, and anyone seeking creative inspiration. The atmosphere is electric with artistic energy and cultural exchange.",
     tips: [
-      "Visit during golden hour for the best photography lighting",
-      "Chat with local artists if you see them working",
-      "The art changes every few months - worth revisiting",
-      "Weekends are more vibrant with street performances"
+      "Visit on weekends when artists are most active",
+      "Bring your own sketchbook or camera",
+      "Respect the artists' space and ask before taking photos",
+      "Best lighting for photography is late afternoon"
     ],
-    tags: ["street-art", "photography", "culture", "creative", "murals"],
     bestTimeToVisit: {
       timeOfDay: "Afternoon",
       season: "Any"
     },
     accessibility: {
-      wheelchairAccessible: true,
+      wheelchairAccessible: false,
       parkingAvailable: false,
       publicTransport: true
     },
-    ratings: {
-      vibe: { average: 4.4, count: 15 },
-      safety: { average: 4.2, count: 15 },
-      uniqueness: { average: 4.8, count: 15 },
-      crowdLevel: { average: 3.2, count: 15 }
-    }
+    tags: ["art", "creative", "murals", "local artists", "culture"],
+    images: [{
+      url: "https://images.unsplash.com/photo-1541961017774-22349e4a1262?w=800&h=600&fit=crop",
+      publicId: "artists-corner-bazaar",
+      caption: "Colorful murals and street art in the artists' corner"
+    }]
   },
   {
-    name: "Riverside Meditation Spot",
-    description: "A secluded spot along the banks of the Swarnarekha River, perfect for meditation, yoga, or simply enjoying the peaceful sound of flowing water. Away from the city's hustle and bustle.",
+    name: "Moonlit Terrace at Tansen Tomb",
+    description: "A secluded terrace near Tansen's Tomb offering magical moonlit views of the city. Perfect for stargazing and peaceful contemplation.",
     category: "Serene",
     coordinates: {
       type: "Point",
-      coordinates: [78.1756, 26.1989] // Riverside area
+      coordinates: [78.1650, 26.2170] // Near Tansen Tomb
     },
     address: {
-      street: "Swarnarekha River Bank",
+      street: "Tansen Tomb Complex",
       city: "Gwalior",
       state: "Madhya Pradesh",
-      country: "India",
-      postalCode: "474005"
+      country: "India"
     },
-    images: [
-      {
-        url: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=600&fit=crop",
-        publicId: "hidden-spots/riverside-1",
-        caption: "Peaceful riverside meditation spot"
-      },
-      {
-        url: "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=800&h=600&fit=crop",
-        publicId: "hidden-spots/riverside-2",
-        caption: "Morning mist over the river"
-      }
-    ],
-    story: "This riverside spot has been my sanctuary for over two years. The gentle sound of the flowing water, the morning mist, and the complete absence of city noise create the perfect environment for meditation and self-reflection. I've spent countless mornings here, watching the sunrise and practicing yoga. It's where I find my inner peace.",
+    story: "This hidden terrace near the historic Tansen Tomb offers one of the most peaceful experiences in Gwalior. Named after the legendary musician Tansen, this spot seems to carry the echoes of classical music in the air. On full moon nights, the terrace is bathed in silver light, creating an almost mystical atmosphere. It's perfect for stargazing, meditation, or simply enjoying the quiet beauty of the night sky.",
     tips: [
-      "Best visited early morning (5-7 AM) for meditation",
-      "Bring a yoga mat or meditation cushion",
-      "Avoid during monsoon season due to high water levels",
-      "Perfect spot for sunrise photography"
+      "Visit during full moon for the most magical experience",
+      "Bring a telescope for stargazing",
+      "Dress warmly as it can get cool at night",
+      "Weeknights are quieter than weekends"
     ],
-    tags: ["meditation", "yoga", "river", "peaceful", "nature"],
     bestTimeToVisit: {
-      timeOfDay: "Morning",
+      timeOfDay: "Night",
       season: "Any"
     },
     accessibility: {
       wheelchairAccessible: false,
       parkingAvailable: true,
-      publicTransport: false
+      publicTransport: true
     },
-    ratings: {
-      vibe: { average: 4.9, count: 10 },
-      safety: { average: 4.6, count: 10 },
-      uniqueness: { average: 4.5, count: 10 },
-      crowdLevel: { average: 1.2, count: 10 }
-    }
+    tags: ["moonlight", "stargazing", "peaceful", "historic", "music"],
+    images: [{
+      url: "https://images.unsplash.com/photo-1532978379173-523e16f371f9?w=800&h=600&fit=crop",
+      publicId: "moonlit-terrace-tansen",
+      caption: "Magical moonlit terrace with city views"
+    }]
   }
 ];
 
-// Sample admin user
-const adminUser = {
-  username: "hidden_spots_admin",
-  email: "admin@hiddenspots.com",
-  password: "Admin123!",
-  bio: "Curator of Gwalior's hidden gems",
-  isVerified: true,
-  preferences: {
-    favoriteCategories: ["Serene", "Romantic", "Creative"],
-    maxDistance: 15,
-    notifications: {
-      newSpots: true,
-      comments: true,
-      ratings: true
-    }
-  },
-  stats: {
-    spotsAdded: 4,
-    spotsVisited: 20,
-    totalRatings: 15,
-    totalComments: 8
-  }
-};
-
-async function seedDatabase() {
+async function seedSpots() {
   try {
     // Connect to MongoDB
-    await mongoose.connect(process.env.MONGODB_URI, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-    });
-    console.log('✅ Connected to MongoDB');
+    await mongoose.connect(process.env.MONGODB_URI);
+    console.log('Connected to MongoDB');
 
-    // Clear existing data
-    await User.deleteMany({});
+    // Find or create a default user for the spots
+    let defaultUser = await User.findOne({ email: 'admin@hiddenspots.com' });
+    
+    if (!defaultUser) {
+      defaultUser = await User.create({
+        username: 'HiddenSpotsAdmin',
+        email: 'admin@hiddenspots.com',
+        password: 'admin123456',
+        bio: 'Hidden Spots Curator'
+      });
+      console.log('Created default user');
+    }
+
+    // Clear existing spots
     await Spot.deleteMany({});
-    console.log('🗑️  Cleared existing data');
+    console.log('Cleared existing spots');
 
-    // Create admin user
-    const user = new User(adminUser);
-    await user.save();
-    console.log('👤 Created admin user');
-
-    // Create spots
-    const spots = sampleSpots.map(spotData => ({
-      ...spotData,
-      createdBy: user._id,
+    // Create spots with the default user
+    const spotsWithUser = spots.map(spot => ({
+      ...spot,
+      createdBy: defaultUser._id,
       isVerified: true,
-      isActive: true,
-      visitCount: Math.floor(Math.random() * 50) + 10,
-      lastVisited: new Date()
+      isActive: true
     }));
 
-    await Spot.insertMany(spots);
-    console.log('📍 Created sample spots');
+    const createdSpots = await Spot.create(spotsWithUser);
+    console.log(`Created ${createdSpots.length} spots successfully`);
 
-    // Update user stats
-    await User.findByIdAndUpdate(user._id, {
-      'stats.spotsAdded': spots.length
+    // Log the created spots
+    createdSpots.forEach(spot => {
+      console.log(`✅ ${spot.name} - ${spot.category}`);
     });
 
-    console.log('🎉 Database seeded successfully!');
-    console.log(`📊 Created ${spots.length} spots`);
-    console.log(`👤 Created 1 admin user`);
-
-    // Display sample data
-    console.log('\n📋 Sample Data Summary:');
-    spots.forEach((spot, index) => {
-      console.log(`${index + 1}. ${spot.name} (${spot.category})`);
-    });
-
+    console.log('Seeding completed successfully!');
+    process.exit(0);
   } catch (error) {
-    console.error('❌ Seeding error:', error);
-  } finally {
-    await mongoose.connection.close();
-    console.log('🔌 Database connection closed');
+    console.error('Seeding failed:', error);
+    process.exit(1);
   }
 }
 
-// Run the seeding function
-if (require.main === module) {
-  seedDatabase();
-}
-
-module.exports = { seedDatabase, sampleSpots, adminUser }; 
+seedSpots(); 

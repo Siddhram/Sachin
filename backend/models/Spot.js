@@ -15,7 +15,7 @@ const spotSchema = new mongoose.Schema({
   category: {
     type: String,
     required: [true, 'Category is required'],
-    enum: ['Romantic', 'Serene', 'Creative'],
+    enum: ['Romantic', 'Serene', 'Creative', 'Historic', 'Spiritual', 'Adventure'],
     default: 'Serene'
   },
   coordinates: {
@@ -170,7 +170,7 @@ const spotSchema = new mongoose.Schema({
     type: String,
     trim: true
   }],
-  visitCount: {
+  visits: {
     type: Number,
     default: 0
   },

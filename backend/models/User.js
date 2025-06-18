@@ -98,6 +98,7 @@ const userSchema = new mongoose.Schema({
 userSchema.virtual('fullProfile').get(function() {
   return {
     id: this._id,
+    _id: this._id,
     username: this.username,
     email: this.email,
     profilePicture: this.profilePicture,

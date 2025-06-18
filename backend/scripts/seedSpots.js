@@ -5,6 +5,151 @@ require('dotenv').config();
 
 const spots = [
   {
+    name: "Bateshwar Temple Complex",
+    description: "An offbeat cluster of nearly 200 ancient Pratihara‑era temples nestled in Morena, often overlooked by travellers.",
+    category: "Historic",
+    coordinates: {
+      type: "Point",
+      coordinates: [78.0115, 26.5300]
+    },
+    address: {
+      street: "Bateshwar Road",
+      city: "Morena",
+      state: "Madhya Pradesh",
+      country: "India"
+    },
+    story: "Rediscovered in recent decades, the restored temples dating from the 8th–10th century AD by ASI offer a quiet, mystic ambience far from city noise. The nearly 80 standing temples across the hillside make a dramatic archaeological site.",
+    tips: [
+      "Start early morning to avoid heat",
+      "Wear sturdy shoes—paths are uneven",
+      "Bring water and snacks",
+      "Combine this with Padavali & Chausath Yogini nearby"
+    ],
+    bestTimeToVisit: {
+      timeOfDay: "Morning",
+      season: "Winter"
+    },
+    accessibility: {
+      wheelchairAccessible: false,
+      parkingAvailable: true,
+      publicTransport: false
+    },
+    tags: ["archaeology", "ruins", "Pratihara", "offbeat", "temples"],
+    images: [{
+      url: "https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=800&h=600&fit=crop",
+      publicId: "bateshwar-temple-complex",
+      caption: "Sunrise over the temples at Bateshwar"
+    }]
+  },
+  {
+    name: "Chausath Yogini Temple, Morena",
+    description: "A rare circular tantric temple of 64 yoginis perched on a small hill near Morena.",
+    category: "Spiritual",
+    coordinates: {
+      type: "Point",
+      coordinates: [78.0045, 26.5230]
+    },
+    address: {
+      street: "Chausath Yogini Hill",
+      city: "Morena",
+      state: "Madhya Pradesh",
+      country: "India"
+    },
+    story: "This enigmatic 10th‑century shrine dedicated to 64 yoginis offers a surreal, eerie atmosphere, especially during early hours. It's still one of the few surviving yogini temples in India.",
+    tips: [
+      "Best light early morning or late afternoon",
+      "Respect the sacred nature of the site",
+      "Combine visit with Bateshwar and Padavali Fortress"
+    ],
+    bestTimeToVisit: {
+      timeOfDay: "Morning",
+      season: "Any"
+    },
+    accessibility: {
+      wheelchairAccessible: false,
+      parkingAvailable: false,
+      publicTransport: false
+    },
+    tags: ["tantra", "yogini", "offbeat", "spiritual", "historic"],
+    images: [{
+      url: "https://images.unsplash.com/photo-1465101046530-73398c7f28ca?w=800&h=600&fit=crop",
+      publicId: "chausath-yogini-morena",
+      caption: "The circular layout of 64 chambers at Yogini Temple"
+    }]
+  },
+  {
+    name: "Siddhachal Caves, Gwalior Fort",
+    description: "Hidden Jain rock‑cut colossal statues carved into the cliff beneath Gwalior Fort's Urvahi Gate.",
+    category: "Historic",
+    coordinates: {
+      type: "Point",
+      coordinates: [78.1640, 26.2165]
+    },
+    address: {
+      street: "Urvahi Gate, Gwalior Fort",
+      city: "Gwalior",
+      state: "Madhya Pradesh",
+      country: "India"
+    },
+    story: "Less visited than the fort and palace, this cliff has impressive 14th–15th‑century Jain statues – some reaching 50 ft. Their defacement and later restorations tell layered tales of history.",
+    tips: [
+      "Walk down from Urvahi Gate to explore the carvings",
+      "Bring a guide to interpret iconography",
+      "Quiet time just after opening is best"
+    ],
+    bestTimeToVisit: {
+      timeOfDay: "Afternoon",
+      season: "Winter"
+    },
+    accessibility: {
+      wheelchairAccessible: false,
+      parkingAvailable: true,
+      publicTransport: true
+    },
+    tags: ["Jainism", "rock‑cut", "sculpture", "fort", "hidden"],
+    images: [{
+      url: "https://images.unsplash.com/photo-1502082553048-f009c37129b9?w=800&h=600&fit=crop",
+      publicId: "siddhachal-caves-gwalior",
+      caption: "Giant Jain statues carved into the fort wall"
+    }]
+  },
+  {
+    name: "Utila Fort Ruins",
+    description: "A lesser‑known fortified hillock east of Gwalior with old ramparts and quiet, uncrowded ruins.",
+    category: "Adventure",
+    coordinates: {
+      type: "Point",
+      coordinates: [78.2567, 26.2200]
+    },
+    address: {
+      street: "Utila Village",
+      city: "Gwalior District",
+      state: "Madhya Pradesh",
+      country: "India"
+    },
+    story: "Built in 1740 by the Gohad rulers, Utila Fort offers peaceful walking trails, quiet towers, and panoramic countryside views, with almost no tourist footfall.",
+    tips: [
+      "Carry drinking water; no facilities on site",
+      "Great spot for sunset photography",
+      "Reach by bike or 4x4 for adventure"
+    ],
+    bestTimeToVisit: {
+      timeOfDay: "Evening",
+      season: "Winter"
+    },
+    accessibility: {
+      wheelchairAccessible: false,
+      parkingAvailable: false,
+      publicTransport: false
+    },
+    tags: ["ruins", "fort", "views", "offbeat", "adventure"],
+    images: [{
+      url: "https://images.unsplash.com/photo-1500534314209-a25ddb2bd429?w=800&h=600&fit=crop",
+      publicId: "utila-fort-ruins",
+      caption: "Ruined walls and valley views at Utila Fort"
+    }]
+  },
+  {
     name: "Sunset Point at Gwalior Fort",
     description: "A hidden viewpoint offering breathtaking sunset views over the historic Gwalior Fort and the city below. Perfect for romantic evenings and photography.",
     category: "Romantic",
@@ -73,7 +218,7 @@ const spots = [
     },
     tags: ["garden", "peaceful", "meditation", "nature", "palace"],
     images: [{
-      url: "https://images.unsplash.com/photo-1585320806297-9794b3e4eeae?w=800&h=600&fit=crop",
+      url: "https://images.unsplash.com/photo-1464983953574-0892a716854b?w=800&h=600&fit=crop",
       publicId: "secret-garden-palace",
       caption: "Peaceful garden paths and meditation areas"
     }]
@@ -110,7 +255,7 @@ const spots = [
     },
     tags: ["art", "creative", "murals", "local artists", "culture"],
     images: [{
-      url: "https://images.unsplash.com/photo-1541961017774-22349e4a1262?w=800&h=600&fit=crop",
+      url: "https://images.unsplash.com/photo-1519125323398-675f0ddb6308?w=800&h=600&fit=crop",
       publicId: "artists-corner-bazaar",
       caption: "Colorful murals and street art in the artists' corner"
     }]
@@ -147,7 +292,7 @@ const spots = [
     },
     tags: ["moonlight", "stargazing", "peaceful", "historic", "music"],
     images: [{
-      url: "https://images.unsplash.com/photo-1532978379173-523e16f371f9?w=800&h=600&fit=crop",
+      url: "https://images.unsplash.com/photo-1502086223501-7ea6ecd79368?w=800&h=600&fit=crop",
       publicId: "moonlit-terrace-tansen",
       caption: "Magical moonlit terrace with city views"
     }]

@@ -34,7 +34,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Discover',
+          title: 'Whisplore',
           tabBarIcon: ({ color }) => <TabBarIcon name="compass" color={color} />,
           headerRight: () => (
             <Link href="/profile" asChild>

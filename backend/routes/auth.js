@@ -183,7 +183,11 @@ router.put('/profile', authenticateToken, [
   body('bio')
     .optional()
     .isLength({ max: 200 })
-    .withMessage('Bio cannot exceed 200 characters')
+    .withMessage('Bio cannot exceed 200 characters'),
+  body('profilePicture')
+    .optional()
+    .isString()
+    .withMessage('Profile picture must be a string (URL)')
 ], async (req, res) => {
   try {
     // Check for validation errors
@@ -196,7 +200,7 @@ router.put('/profile', authenticateToken, [
       });
     }
 
-    const { username, bio, preferences } = req.body;
+    const { username, bio, preferences, profilePicture } = req.body;
     const updateData = {};
 
     // Check if username is being updated and if it's already taken
@@ -213,6 +217,7 @@ router.put('/profile', authenticateToken, [
 
     if (bio !== undefined) updateData.bio = bio;
     if (preferences) updateData.preferences = { ...req.user.preferences, ...preferences };
+    if (profilePicture !== undefined) updateData.profilePicture = profilePicture;
 
     const updatedUser = await User.findByIdAndUpdate(
       req.user._id,
