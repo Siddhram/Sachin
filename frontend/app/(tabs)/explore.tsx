@@ -22,6 +22,201 @@ import { CONFIG } from '../../constants/Config';
 
 const { width } = Dimensions.get('window');
 
+// Helper to calculate average rating across all categories (0-5 scale)
+function getAverageRating(spot: Spot): number {
+  const ratings = spot.ratings;
+  const values = [
+    ratings.vibe?.count ? ratings.vibe.average : null,
+    ratings.safety?.count ? ratings.safety.average : null,
+    ratings.uniqueness?.count ? ratings.uniqueness.average : null,
+    ratings.crowdLevel?.count ? ratings.crowdLevel.average : null,
+  ];
+  const valid = values.filter((v) => typeof v === 'number');
+  if (valid.length === 0) return 0;
+  return valid.reduce((a, b) => (a as number) + (b as number), 0) / valid.length;
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    marginTop: 16,
+    fontSize: 16,
+  },
+  header: {
+    paddingHorizontal: 20,
+    paddingTop: 20,
+    paddingBottom: 16,
+  },
+  title: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    marginBottom: 4,
+  },
+  subtitle: {
+    fontSize: 16,
+  },
+  distanceContainer: {
+    paddingHorizontal: 20,
+    paddingBottom: 16,
+  },
+  distanceLabel: {
+    fontSize: 14,
+    marginBottom: 8,
+  },
+  distanceButtons: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  distanceButton: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
+    borderWidth: 1,
+  },
+  distanceButtonText: {
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  categoryContainer: {
+    paddingHorizontal: 20,
+    paddingBottom: 16,
+  },
+  filterLabel: {
+    fontSize: 14,
+    marginBottom: 8,
+  },
+  categoryButtons: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  categoryButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 20,
+    borderWidth: 1,
+  },
+  categoryButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+    marginLeft: 4,
+  },
+  sortContainer: {
+    paddingHorizontal: 20,
+    paddingBottom: 16,
+  },
+  sortButtons: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  sortButton: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
+    borderWidth: 1,
+  },
+  sortButtonText: {
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  listContainer: {
+    paddingHorizontal: 20,
+    paddingBottom: 20,
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 60,
+  },
+  emptyTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginBottom: 8,
+  },
+  emptySubtitle: {
+    fontSize: 14,
+    color: '#888',
+    marginBottom: 16,
+    textAlign: 'center',
+  },
+  retryButton: {
+    marginTop: 12,
+    backgroundColor: '#007AFF',
+    paddingHorizontal: 24,
+    paddingVertical: 10,
+    borderRadius: 24,
+  },
+  retryButtonText: {
+    color: 'white',
+    fontWeight: 'bold',
+    fontSize: 16,
+  },
+  fab: {
+    position: 'absolute',
+    right: 24,
+    bottom: 32,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    justifyContent: 'center',
+    alignItems: 'center',
+    elevation: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+  },
+});
+
+const renderSortFilter = (selectedSort: string, setSelectedSort: (id: string) => void, colors: any) => (
+  <View style={styles.sortContainer}>
+    <Text style={[styles.filterLabel, { color: colors.textSecondary }]}>Sort by:</Text>
+    <View style={styles.sortButtons}>
+      {CONFIG.SORT_OPTIONS.map((sortOption) => (
+        <TouchableOpacity
+          key={sortOption.id}
+          style={[
+            styles.sortButton,
+            {
+              backgroundColor: selectedSort === sortOption.id ? colors.primary : colors.surface,
+              borderColor: colors.border,
+            },
+          ]}
+          onPress={() => setSelectedSort(sortOption.id)}
+        >
+          <Ionicons
+            name={
+              sortOption.id === 'rating' ? 'star' :
+              sortOption.id === 'newest' ? 'time' :
+              sortOption.id === 'popular' ? 'trending-up' : 'list'
+            }
+            size={16}
+            color={selectedSort === sortOption.id ? 'white' : colors.textSecondary}
+          />
+          <Text
+            style={[
+              styles.sortButtonText,
+              { color: selectedSort === sortOption.id ? 'white' : colors.text },
+            ]}
+          >
+            {sortOption.label}
+          </Text>
+        </TouchableOpacity>
+      ))}
+    </View>
+  </View>
+);
+
 export default function ExploreScreen() {
   const [nearbySpots, setNearbySpots] = useState<Spot[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -32,6 +227,7 @@ export default function ExploreScreen() {
   } | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [maxDistance, setMaxDistance] = useState(10);
+  const [selectedSort, setSelectedSort] = useState<string>('rating'); // Default to rating sort
   
   const { isAuthenticated } = useAuth();
   const router = useRouter();
@@ -46,7 +242,7 @@ export default function ExploreScreen() {
     if (userLocation) {
       loadNearbySpots();
     }
-  }, [userLocation, selectedCategory, maxDistance]);
+  }, [userLocation, selectedCategory, maxDistance, selectedSort]);
 
   const requestLocationPermission = async () => {
     try {
@@ -101,7 +297,18 @@ export default function ExploreScreen() {
       }
 
       const spots = await apiService.getNearbySpots(params);
-      setNearbySpots(spots);
+      let sortedSpots = [...spots];
+      // Always sort by average rating descending for 'rating' sort
+      if (selectedSort === 'rating' || !selectedSort) {
+        sortedSpots.sort((a, b) => getAverageRating(b) - getAverageRating(a));
+      }
+      // Optionally handle other sorts here (newest, popular, etc.)
+      console.log('Sorted spots with average ratings:', sortedSpots.map(s => ({
+        name: s.name,
+        avg: getAverageRating(s),
+        ratings: s.ratings
+      })));
+      setNearbySpots(sortedSpots);
     } catch (error) {
       console.error('Error loading nearby spots:', error);
       Alert.alert('Error', 'Failed to load nearby spots. Please try again.');
@@ -275,6 +482,7 @@ export default function ExploreScreen() {
 
       {renderDistanceFilter()}
       {renderCategoryFilter()}
+      {renderSortFilter(selectedSort, setSelectedSort, colors)}
 
       <FlatList
         data={nearbySpots}
@@ -310,118 +518,3 @@ export default function ExploreScreen() {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  loadingText: {
-    marginTop: 16,
-    fontSize: 16,
-  },
-  header: {
-    paddingHorizontal: 20,
-    paddingTop: 20,
-    paddingBottom: 16,
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    marginBottom: 4,
-  },
-  subtitle: {
-    fontSize: 16,
-  },
-  distanceContainer: {
-    paddingHorizontal: 20,
-    paddingBottom: 16,
-  },
-  distanceLabel: {
-    fontSize: 14,
-    marginBottom: 8,
-  },
-  distanceButtons: {
-    flexDirection: 'row',
-    gap: 8,
-  },
-  distanceButton: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 16,
-    borderWidth: 1,
-  },
-  distanceButtonText: {
-    fontSize: 12,
-    fontWeight: '600',
-  },
-  categoryContainer: {
-    paddingHorizontal: 20,
-    paddingBottom: 16,
-  },
-  filterLabel: {
-    fontSize: 14,
-    marginBottom: 8,
-  },
-  categoryButtons: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-  },
-  categoryButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 20,
-    borderWidth: 1,
-  },
-  categoryButtonText: {
-    fontSize: 14,
-    fontWeight: '600',
-    marginLeft: 4,
-  },
-  listContainer: {
-    paddingHorizontal: 20,
-    paddingBottom: 20,
-  },
-  emptyContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingVertical: 60,
-  },
-  emptyTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    marginTop: 16,
-    marginBottom: 8,
-  },
-  emptySubtitle: {
-    fontSize: 16,
-    textAlign: 'center',
-    paddingHorizontal: 40,
-    marginBottom: 24,
-  },
-  retryButton: {
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-    borderRadius: 12,
-  },
-  retryButtonText: {
-    color: 'white',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  fab: {
-    position: 'absolute',
-    bottom: 20,
-    right: 20,
-    padding: 12,
-    borderRadius: 24,
-  },
-});

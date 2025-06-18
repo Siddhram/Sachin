@@ -31,8 +31,8 @@ const validateComment = [
     .withMessage('Comment content must be between 1 and 500 characters'),
   body('isAnonymous')
     .optional()
-    .isBoolean()
-    .withMessage('isAnonymous must be a boolean'),
+    .isIn(['true', 'false', true, false])
+    .withMessage('isAnonymous must be true or false'),
   body('rating')
     .optional()
     .isString()
@@ -99,9 +99,12 @@ router.post('/', authenticateToken, upload.array('images', 3), validateComment, 
     const {
       spotId,
       content,
-      isAnonymous = false,
+      isAnonymous = 'false',
       rating
     } = req.body;
+
+    // Convert string values to appropriate types
+    const isAnonymousBool = isAnonymous === 'true' || isAnonymous === true;
 
     // Check if spot exists
     const spot = await Spot.findById(spotId);
@@ -145,7 +148,7 @@ router.post('/', authenticateToken, upload.array('images', 3), validateComment, 
       spotId,
       userId: req.user._id,
       content,
-      isAnonymous,
+      isAnonymous: isAnonymousBool,
       rating: parsedRating,
       images: uploadedImages.map(img => ({
         url: img.url,
@@ -157,14 +160,19 @@ router.post('/', authenticateToken, upload.array('images', 3), validateComment, 
     await comment.save();
 
     // Increment user stats
-    await req.user.incrementStats('totalComments');
+    try {
+      await req.user.incrementStats('totalComments');
+    } catch (statsError) {
+      console.error('Error incrementing user stats:', statsError);
+      // Don't fail the comment creation if stats update fails
+    }
 
     // Populate user info for response
     await comment.populate('userId', 'username profilePicture');
 
     res.status(201).json({
       message: 'Comment created successfully',
-      comment: comment.publicSummary
+      comment: comment
     });
 
   } catch (error) {

@@ -264,7 +264,9 @@ spotSchema.statics.findNearby = function(longitude, latitude, maxDistance = 10) 
       }
     },
     isActive: true
-  }).populate('createdBy', 'username profilePicture');
+  })
+    .populate('createdBy', 'username profilePicture')
+    .lean({ virtuals: true });
 };
 
 // Static method to get top rated spots

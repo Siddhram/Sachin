@@ -71,8 +71,14 @@ const commentSchema = new mongoose.Schema({
   },
   reportReason: {
     type: String,
-    enum: ['Spam', 'Inappropriate', 'Offensive', 'Fake', 'Other'],
-    default: null
+    default: null,
+    validate: {
+      validator: function(value) {
+        if (value === null || value === undefined) return true;
+        return ['Spam', 'Inappropriate', 'Offensive', 'Fake', 'Other'].includes(value);
+      },
+      message: 'Invalid report reason'
+    }
   }
 }, {
   timestamps: true,
@@ -84,6 +90,8 @@ const commentSchema = new mongoose.Schema({
 commentSchema.virtual('publicSummary').get(function() {
   return {
     id: this._id,
+    spotId: this.spotId,
+    userId: this.userId,
     content: this.content,
     isAnonymous: this.isAnonymous,
     rating: this.rating,
@@ -173,13 +181,19 @@ commentSchema.pre('save', async function(next) {
       if (spot) {
         // Update spot ratings
         for (const [ratingType, ratingValue] of Object.entries(this.rating)) {
-          if (ratingValue) {
-            await spot.updateRating(ratingType, ratingValue);
+          if (ratingValue && typeof ratingValue === 'number') {
+            try {
+              await spot.updateRating(ratingType, ratingValue);
+            } catch (ratingError) {
+              console.error(`Error updating ${ratingType} rating:`, ratingError);
+              // Continue with other ratings even if one fails
+            }
           }
         }
       }
     } catch (error) {
       console.error('Error updating spot ratings:', error);
+      // Don't fail the comment save if rating update fails
     }
   }
   next();

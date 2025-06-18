@@ -304,7 +304,7 @@ export default function TabOneScreen() {
       )}
 
       <FlatList
-        data={spots}
+        data={spots.slice().sort((a, b) => (b.overallRating || 0) - (a.overallRating || 0))}
         keyExtractor={(item) => item._id}
         renderItem={({ item }) => (
           <SpotCard
