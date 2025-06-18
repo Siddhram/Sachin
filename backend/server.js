@@ -34,8 +34,21 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(cors({
   origin: process.env.NODE_ENV === 'production' 
     ? ['https://your-frontend-domain.com'] 
-    : ['http://localhost:3000', 'http://localhost:19006', 'exp://localhost:19000'],
-  credentials: true
+    : [
+        'http://localhost:3000', 
+        'http://localhost:19006', 
+        'exp://localhost:19000',
+        'http://192.168.56.1:19006',
+        'exp://192.168.56.1:19000',
+        'http://192.168.56.1:3000',
+        'http://192.168.56.1:8081',
+        'http://localhost:8081',
+        'exp://192.168.74.222:8081',
+        'exp://localhost:8081'
+      ],
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'Accept']
 }));
 
 // Logging middleware
@@ -100,7 +113,7 @@ mongoose.connect(process.env.MONGODB_URI, {
   console.log('✅ Connected to MongoDB Atlas');
   
   // Start server
-  app.listen(PORT, () => {
+  app.listen(PORT,"0.0.0.0", () => {
     console.log(`🚀 Hidden Spots API running on port ${PORT}`);
     console.log(`📱 Environment: ${process.env.NODE_ENV || 'development'}`);
     console.log(`🗺️  Health check: http://localhost:${PORT}/health`);

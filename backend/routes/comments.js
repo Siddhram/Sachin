@@ -33,22 +33,10 @@ const validateComment = [
     .optional()
     .isBoolean()
     .withMessage('isAnonymous must be a boolean'),
-  body('rating.vibe')
+  body('rating')
     .optional()
-    .isInt({ min: 1, max: 5 })
-    .withMessage('Vibe rating must be between 1 and 5'),
-  body('rating.safety')
-    .optional()
-    .isInt({ min: 1, max: 5 })
-    .withMessage('Safety rating must be between 1 and 5'),
-  body('rating.uniqueness')
-    .optional()
-    .isInt({ min: 1, max: 5 })
-    .withMessage('Uniqueness rating must be between 1 and 5'),
-  body('rating.crowdLevel')
-    .optional()
-    .isInt({ min: 1, max: 5 })
-    .withMessage('Crowd level rating must be between 1 and 5')
+    .isString()
+    .withMessage('Rating must be a JSON string')
 ];
 
 // @route   GET /api/comments
@@ -105,6 +93,9 @@ router.post('/', authenticateToken, upload.array('images', 3), validateComment, 
       });
     }
 
+    console.log('Comment creation request body:', req.body);
+    console.log('Files:', req.files);
+
     const {
       spotId,
       content,
@@ -136,12 +127,26 @@ router.post('/', authenticateToken, upload.array('images', 3), validateComment, 
     }
 
     // Create comment
+    let parsedRating;
+    if (rating) {
+      try {
+        parsedRating = JSON.parse(rating);
+        console.log('Parsed rating:', parsedRating);
+      } catch (parseError) {
+        console.error('Error parsing rating JSON:', parseError);
+        return res.status(400).json({
+          error: 'Invalid rating format',
+          message: 'Rating must be a valid JSON string'
+        });
+      }
+    }
+
     const comment = new Comment({
       spotId,
       userId: req.user._id,
       content,
       isAnonymous,
-      rating: rating ? JSON.parse(rating) : undefined,
+      rating: parsedRating,
       images: uploadedImages.map(img => ({
         url: img.url,
         publicId: img.publicId,
@@ -164,6 +169,13 @@ router.post('/', authenticateToken, upload.array('images', 3), validateComment, 
 
   } catch (error) {
     console.error('Create comment error:', error);
+    console.error('Error details:', {
+      message: error.message,
+      stack: error.stack,
+      spotId: req.body.spotId,
+      content: req.body.content,
+      rating: req.body.rating
+    });
     res.status(500).json({
       error: 'Failed to create comment',
       message: 'Something went wrong'

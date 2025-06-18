@@ -76,6 +76,10 @@ const userSchema = new mongoose.Schema({
       default: 0
     }
   },
+  favorites: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Spot'
+  }],
   isVerified: {
     type: Boolean,
     default: false

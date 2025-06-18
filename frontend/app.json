@@ -1,51 +1,51 @@
 {
   "expo": {
-    "name": "Hidden Spots",
-    "slug": "hidden-spots",
+    "name": "frontend",
+    "slug": "frontend",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
-    "userInterfaceStyle": "light",
-    "splash": {
-      "image": "./assets/splash.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
-    },
-    "assetBundlePatterns": [
-      "**/*"
-    ],
+    "icon": "./assets/images/icon.png",
+    "scheme": "frontend",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.hiddenspots.app",
-      "infoPlist": {
-        "NSLocationWhenInUseUsageDescription": "This app needs access to location to show nearby hidden spots.",
-        "NSLocationAlwaysAndWhenInUseUsageDescription": "This app needs access to location to show nearby hidden spots.",
-        "NSCameraUsageDescription": "This app needs access to camera to take photos of hidden spots.",
-        "NSPhotoLibraryUsageDescription": "This app needs access to photo library to select images for hidden spots."
+      "config": {
+        "googleMapsApiKey": "AIzaSyCMLN7zO3fmBP6Vf9Kb_kkFrg0oEKnNvCY"
       }
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#FFFFFF"
+        "foregroundImage": "./assets/images/adaptive-icon.png",
+        "backgroundColor": "#ffffff"
       },
-      "package": "com.hiddenspots.app",
-      "permissions": [
-        "ACCESS_FINE_LOCATION",
-        "ACCESS_COARSE_LOCATION",
-        "CAMERA",
-        "READ_EXTERNAL_STORAGE",
-        "WRITE_EXTERNAL_STORAGE"
-      ]
+      "edgeToEdgeEnabled": true,
+      "usesCleartextTraffic": true,
+      "config": {
+        "googleMaps": {
+          "apiKey": "AIzaSyCMLN7zO3fmBP6Vf9Kb_kkFrg0oEKnNvCY"
+        }
+      }
     },
     "web": {
-      "favicon": "./assets/favicon.png"
+      "bundler": "metro",
+      "output": "static",
+      "favicon": "./assets/images/favicon.png"
     },
     "plugins": [
-      "expo-location",
-      "expo-image-picker",
-      "expo-camera",
-      "expo-media-library"
-    ]
+      "expo-router",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/images/splash-icon.png",
+          "imageWidth": 200,
+          "resizeMode": "contain",
+          "backgroundColor": "#ffffff"
+        }
+      ]
+    ],
+    "experiments": {
+      "typedRoutes": true
+    }
   }
-} 
+}

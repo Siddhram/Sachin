@@ -236,6 +236,74 @@ router.get('/top-rated', [
   }
 });
 
+// @route   GET /api/spots/favorites
+// @desc    Get user's favorite spots
+// @access  Private
+router.get('/favorites', authenticateToken, async (req, res) => {
+  console.log('🔍 Favorites route hit - User ID:', req.user._id);
+  try {
+    const user = await User.findById(req.user._id).populate('favorites');
+    console.log('👤 User found:', user ? 'Yes' : 'No');
+    
+    if (!user) {
+      return res.status(404).json({
+        error: 'User not found',
+        message: 'The requested user does not exist'
+      });
+    }
+
+    console.log('⭐ User favorites:', user.favorites);
+
+    // Get favorite spots with populated creator info
+    const favoriteSpots = await Spot.find({
+      _id: { $in: user.favorites || [] },
+      isActive: true
+    }).populate('createdBy', 'username profilePicture');
+
+    console.log('📍 Favorite spots found:', favoriteSpots.length);
+
+    res.json({
+      spots: favoriteSpots,
+      count: favoriteSpots.length
+    });
+
+  } catch (error) {
+    console.error('❌ Get favorites error:', error);
+    res.status(500).json({
+      error: 'Failed to get favorites',
+      message: 'Something went wrong'
+    });
+  }
+});
+
+// @route   GET /api/spots/my-spots
+// @desc    Get spots created by the user
+// @access  Private
+router.get('/my-spots', authenticateToken, async (req, res) => {
+  console.log('🔍 My-spots route hit - User ID:', req.user._id);
+  try {
+    const userSpots = await Spot.find({
+      createdBy: req.user._id,
+      isActive: true
+    }).populate('createdBy', 'username profilePicture')
+      .sort({ createdAt: -1 });
+
+    console.log('📍 User spots found:', userSpots.length);
+
+    res.json({
+      spots: userSpots,
+      count: userSpots.length
+    });
+
+  } catch (error) {
+    console.error('❌ Get my spots error:', error);
+    res.status(500).json({
+      error: 'Failed to get my spots',
+      message: 'Something went wrong'
+    });
+  }
+});
+
 // @route   GET /api/spots/:id
 // @desc    Get spot by ID
 // @access  Public
@@ -538,6 +606,111 @@ router.get('/:id/comments', [
     console.error('Get spot comments error:', error);
     res.status(500).json({
       error: 'Failed to get comments',
+      message: 'Something went wrong'
+    });
+  }
+});
+
+// @route   POST /api/spots/:id/favorite
+// @desc    Add spot to favorites
+// @access  Private
+router.post('/:id/favorite', authenticateToken, async (req, res) => {
+  try {
+    const spot = await Spot.findById(req.params.id);
+    if (!spot) {
+      return res.status(404).json({
+        error: 'Spot not found',
+        message: 'The requested spot does not exist'
+      });
+    }
+
+    const user = await User.findById(req.user._id);
+    if (!user.favorites) {
+      user.favorites = [];
+    }
+
+    if (!user.favorites.includes(spot._id)) {
+      user.favorites.push(spot._id);
+      await user.save();
+    }
+
+    res.json({
+      message: 'Spot added to favorites',
+      isFavorited: true
+    });
+
+  } catch (error) {
+    console.error('Add to favorites error:', error);
+    res.status(500).json({
+      error: 'Failed to add to favorites',
+      message: 'Something went wrong'
+    });
+  }
+});
+
+// @route   DELETE /api/spots/:id/unfavorite
+// @desc    Remove spot from favorites
+// @access  Private
+router.delete('/:id/unfavorite', authenticateToken, async (req, res) => {
+  try {
+    const spot = await Spot.findById(req.params.id);
+    if (!spot) {
+      return res.status(404).json({
+        error: 'Spot not found',
+        message: 'The requested spot does not exist'
+      });
+    }
+
+    const user = await User.findById(req.user._id);
+    if (user.favorites) {
+      user.favorites = user.favorites.filter(id => id.toString() !== spot._id.toString());
+      await user.save();
+    }
+
+    res.json({
+      message: 'Spot removed from favorites',
+      isFavorited: false
+    });
+
+  } catch (error) {
+    console.error('Remove from favorites error:', error);
+    res.status(500).json({
+      error: 'Failed to remove from favorites',
+      message: 'Something went wrong'
+    });
+  }
+});
+
+// @route   POST /api/spots/:id/visit
+// @desc    Mark spot as visited
+// @access  Private
+router.post('/:id/visit', authenticateToken, async (req, res) => {
+  try {
+    const spot = await Spot.findById(req.params.id);
+    if (!spot) {
+      return res.status(404).json({
+        error: 'Spot not found',
+        message: 'The requested spot does not exist'
+      });
+    }
+
+    // Increment visit count
+    spot.visitCount += 1;
+    spot.lastVisited = new Date();
+    await spot.save();
+
+    // Increment user stats
+    await req.user.incrementStats('spotsVisited');
+
+    res.json({
+      message: 'Spot marked as visited',
+      visitCount: spot.visitCount
+    });
+
+  } catch (error) {
+    console.error('Mark as visited error:', error);
+    res.status(500).json({
+      error: 'Failed to mark as visited',
       message: 'Something went wrong'
     });
   }
