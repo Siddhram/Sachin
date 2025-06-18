@@ -45,14 +45,83 @@ const validateSpot = [
     .isLength({ min: 20, max: 1000 })
     .withMessage('Story must be between 20 and 1000 characters'),
   body('tips')
-    .optional()
     .isArray()
     .withMessage('Tips must be an array'),
   body('tips.*')
-    .optional()
+    .isString()
     .isLength({ max: 200 })
-    .withMessage('Each tip cannot exceed 200 characters')
+    .withMessage('Each tip cannot exceed 200 characters'),
+  body('tags')
+    .isArray()
+    .withMessage('Tags must be an array'),
+  body('tags.*')
+    .isString()
+    .withMessage('Each tag must be a string'),
+  body('images')
+    .isArray()
+    .withMessage('Images must be an array'),
+  body('images.*.url')
+    .isURL()
+    .withMessage('Each image must have a valid URL'),
+  body('images.*.publicId')
+    .isString()
+    .withMessage('Each image must have a public ID'),
+  body('images.*.caption')
+    .optional()
+    .isString()
+    .withMessage('Image caption must be a string'),
+  body('bestTimeToVisit.timeOfDay')
+    .isIn(['Morning', 'Afternoon', 'Evening', 'Night', 'Any'])
+    .withMessage('Invalid time of day'),
+  body('bestTimeToVisit.season')
+    .isIn(['Spring', 'Summer', 'Monsoon', 'Autumn', 'Winter', 'Any'])
+    .withMessage('Invalid season'),
+  body('accessibility.wheelchairAccessible')
+    .isBoolean()
+    .withMessage('Wheelchair accessible must be a boolean'),
+  body('accessibility.parkingAvailable')
+    .isBoolean()
+    .withMessage('Parking available must be a boolean'),
+  body('accessibility.publicTransport')
+    .isBoolean()
+    .withMessage('Public transport must be a boolean'),
+  body('address.street')
+    .isString()
+    .withMessage('Street must be a string'),
+  body('address.city')
+    .isString()
+    .withMessage('City must be a string'),
+  body('address.state')
+    .isString()
+    .withMessage('State must be a string'),
+  body('address.postalCode')
+    .optional()
+    .isString()
+    .withMessage('Postal code must be a string')
 ];
+
+// Middleware to process FormData nested fields
+const processFormData = (req, res, next) => {
+  // Process coordinates
+  if (req.body['coordinates.longitude'] && req.body['coordinates.latitude']) {
+    req.body.coordinates = {
+      longitude: req.body['coordinates.longitude'],
+      latitude: req.body['coordinates.latitude']
+    };
+  }
+
+  // Process address
+  if (req.body['address.street'] || req.body['address.city'] || req.body['address.state']) {
+    req.body.address = {
+      street: req.body['address.street'] || '',
+      city: req.body['address.city'] || '',
+      state: req.body['address.state'] || '',
+      postalCode: req.body['address.postalCode'] || ''
+    };
+  }
+
+  next();
+};
 
 // @route   GET /api/spots
 // @desc    Get spots with filters and pagination
@@ -339,11 +408,12 @@ router.get('/:id', optionalAuth, async (req, res) => {
 // @route   POST /api/spots
 // @desc    Create a new spot
 // @access  Private
-router.post('/', authenticateToken, upload.array('images', 5), validateSpot, async (req, res) => {
+router.post('/', authenticateToken, validateSpot, async (req, res) => {
   try {
     // Check for validation errors
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
+      console.log('❌ Validation errors:', errors.array());
       return res.status(400).json({
         error: 'Validation error',
         message: 'Please check your input',
@@ -351,31 +421,31 @@ router.post('/', authenticateToken, upload.array('images', 5), validateSpot, asy
       });
     }
 
+    console.log('📝 Received JSON data:', {
+      name: req.body.name,
+      description: req.body.description,
+      category: req.body.category,
+      coordinates: req.body.coordinates,
+      story: req.body.story,
+      tips: req.body.tips,
+      tags: req.body.tags,
+      bestTimeToVisit: req.body.bestTimeToVisit,
+      accessibility: req.body.accessibility,
+      images: req.body.images
+    });
+
     const {
       name,
       description,
       category,
       coordinates,
       story,
-      tips = [],
-      tags = [],
+      tips,
+      tags,
       bestTimeToVisit,
-      accessibility
+      accessibility,
+      images
     } = req.body;
-
-    let uploadedImages = [];
-
-    // Upload images if provided
-    if (req.files && req.files.length > 0) {
-      try {
-        uploadedImages = await uploadMultipleImages(req.files, 'hidden-spots/spots');
-      } catch (uploadError) {
-        return res.status(400).json({
-          error: 'Image upload failed',
-          message: uploadError.message
-        });
-      }
-    }
 
     // Create spot
     const spot = new Spot({
@@ -386,16 +456,12 @@ router.post('/', authenticateToken, upload.array('images', 5), validateSpot, asy
         type: 'Point',
         coordinates: [parseFloat(coordinates.longitude), parseFloat(coordinates.latitude)]
       },
-      images: uploadedImages.map(img => ({
-        url: img.url,
-        publicId: img.publicId,
-        caption: ''
-      })),
+      images: images || [],
       story,
-      tips: Array.isArray(tips) ? tips : [tips].filter(Boolean),
-      tags: Array.isArray(tags) ? tags : [tags].filter(Boolean),
-      bestTimeToVisit: bestTimeToVisit ? JSON.parse(bestTimeToVisit) : undefined,
-      accessibility: accessibility ? JSON.parse(accessibility) : undefined,
+      tips: tips || [],
+      tags: tags || [],
+      bestTimeToVisit: bestTimeToVisit || {},
+      accessibility: accessibility || {},
       createdBy: req.user._id
     });
 

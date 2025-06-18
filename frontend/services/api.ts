@@ -277,15 +277,41 @@ class ApiService {
     return response.data.spot;
   }
 
-  async createSpot(spotData: FormData): Promise<Spot> {
+  async createSpot(spotData: {
+    name: string;
+    description: string;
+    category: string;
+    coordinates: {
+      longitude: number;
+      latitude: number;
+    };
+    address: {
+      street: string;
+      city: string;
+      state: string;
+      postalCode: string;
+    };
+    story: string;
+    tips: string[];
+    tags: string[];
+    bestTimeToVisit: {
+      timeOfDay: string;
+      season: string;
+    };
+    accessibility: {
+      wheelchairAccessible: boolean;
+      parkingAvailable: boolean;
+      publicTransport: boolean;
+    };
+    images: Array<{
+      url: string;
+      publicId: string;
+      caption?: string;
+    }>;
+  }): Promise<Spot> {
     const response = await this.api.post<{ spot: Spot }>(
       CONFIG.API_ENDPOINTS.SPOTS.CREATE,
-      spotData,
-      {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      }
+      spotData
     );
     return response.data.spot;
   }
@@ -331,6 +357,18 @@ class ApiService {
       CONFIG.API_ENDPOINTS.SPOTS.MY_SPOTS
     );
     return response.data.spots;
+  }
+
+  async rateSpot(spotId: string, rating: {
+    vibe?: number;
+    safety?: number;
+    uniqueness?: number;
+    crowdLevel?: number;
+  }): Promise<void> {
+    await this.api.post(
+      CONFIG.API_ENDPOINTS.SPOTS.DETAIL.replace(':id', spotId) + '/rate',
+      rating
+    );
   }
 
   // Comments Methods

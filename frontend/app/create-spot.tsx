@@ -142,55 +142,74 @@ export default function CreateSpotScreen() {
     try {
       setIsLoading(true);
 
-      // Create FormData
-      const formData = new FormData();
-      formData.append('name', name.trim());
-      formData.append('description', description.trim());
-      formData.append('category', category);
-      formData.append('story', story.trim());
-      
-      // Add coordinates as nested fields (backend validation expects this format)
-      formData.append('coordinates[longitude]', '78.1642');
-      formData.append('coordinates[latitude]', '26.2183');
-      
-      // Add address as nested object
-      formData.append('address[street]', street.trim());
-      formData.append('address[city]', city.trim());
-      formData.append('address[state]', state.trim());
-      formData.append('address[postalCode]', postalCode.trim());
-      
-      // Add best time to visit as JSON string
-      const bestTimeToVisit = {
-        timeOfDay: timeOfDay,
-        season: season
+      // Upload images to Cloudinary first
+      const uploadedImages = [];
+      for (const imageUri of images) {
+        try {
+          // Create form data for Cloudinary upload
+          const cloudinaryFormData = new FormData();
+          cloudinaryFormData.append('file', {
+            uri: imageUri,
+            type: 'image/jpeg',
+            name: 'image.jpg',
+          } as any);
+          cloudinaryFormData.append('upload_preset', 'rnative'); // Replace with your upload preset
+          cloudinaryFormData.append('cloud_name', 'drxliiejo'); // Replace with your cloud name
+
+          const response = await fetch('https://api.cloudinary.com/v1_1/drxliiejo/image/upload', {
+            method: 'POST',
+            body: cloudinaryFormData,
+          });
+
+          const result = await response.json();
+          if (result.secure_url) {
+            uploadedImages.push({
+              url: result.secure_url,
+              publicId: result.public_id,
+              caption: ''
+            });
+          }
+        } catch (uploadError) {
+          console.error('Error uploading image to Cloudinary:', uploadError);
+          Alert.alert('Error', 'Failed to upload one or more images. Please try again.');
+          return;
+        }
+      }
+
+      // Create JSON request body
+      const requestBody = {
+        name: name.trim(),
+        description: description.trim(),
+        category: category,
+        coordinates: {
+          longitude: 78.1642,
+          latitude: 26.2183
+        },
+        address: {
+          street: street.trim(),
+          city: city.trim(),
+          state: state.trim(),
+          postalCode: postalCode.trim()
+        },
+        story: story.trim(),
+        tips: tips.filter(tip => tip.trim()),
+        tags: [],
+        bestTimeToVisit: {
+          timeOfDay: timeOfDay,
+          season: season
+        },
+        accessibility: {
+          wheelchairAccessible: wheelchairAccessible,
+          parkingAvailable: parkingAvailable,
+          publicTransport: publicTransport
+        },
+        images: uploadedImages
       };
-      formData.append('bestTimeToVisit', JSON.stringify(bestTimeToVisit));
-      
-      // Add accessibility as JSON string
-      const accessibility = {
-        wheelchairAccessible: wheelchairAccessible,
-        parkingAvailable: parkingAvailable,
-        publicTransport: publicTransport
-      };
-      formData.append('accessibility', JSON.stringify(accessibility));
 
-      // Add tips
-      const filteredTips = tips.filter(tip => tip.trim());
-      filteredTips.forEach((tip, index) => {
-        formData.append(`tips[${index}]`, tip.trim());
-      });
+      // Debug: Log request body
+      console.log('📤 Sending JSON request:', requestBody);
 
-      // Add images as files (backend will handle Cloudinary upload)
-      images.forEach((imageUri, index) => {
-        const imageName = `image_${index}.jpg`;
-        formData.append('images', {
-          uri: imageUri,
-          type: 'image/jpeg',
-          name: imageName,
-        } as any);
-      });
-
-      await apiService.createSpot(formData);
+      await apiService.createSpot(requestBody);
       
       Alert.alert(
         'Success!',
@@ -204,6 +223,8 @@ export default function CreateSpotScreen() {
       );
     } catch (error: any) {
       console.error('Error creating spot:', error);
+      console.error('Error response:', error.response?.data);
+      console.error('Error details:', error.response?.data?.details);
       const errorMessage = error.response?.data?.message || 'Failed to create spot. Please try again.';
       Alert.alert('Error', errorMessage);
     } finally {

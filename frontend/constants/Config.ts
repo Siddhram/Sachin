@@ -58,6 +58,13 @@ export const CONFIG = {
     QUALITY: 0.8,
   },
   
+  // Cloudinary Configuration
+  CLOUDINARY: {
+    CLOUD_NAME: 'your-cloud-name', // Replace with your cloud name
+    UPLOAD_PRESET: 'ml_default', // Replace with your upload preset
+    UPLOAD_URL: 'https://api.cloudinary.com/v1_1/your-cloud-name/image/upload',
+  },
+  
   // Pagination
   PAGINATION: {
     DEFAULT_PAGE: 1,

@@ -132,22 +132,18 @@ export default function SpotDetailsScreen() {
       return;
     }
 
-    try {
-      const formData = new FormData();
-      formData.append('spotId', spot!._id);
-      formData.append('content', 'Rating submitted');
-      formData.append('isAnonymous', isAnonymous.toString());
-      
-      // Send rating as JSON string
-      const ratingData = {
-        vibe: userRating.vibe,
-        safety: userRating.safety,
-        uniqueness: userRating.uniqueness,
-        crowdLevel: userRating.crowdLevel
-      };
-      formData.append('rating', JSON.stringify(ratingData));
+    // Check if at least one rating is provided
+    const hasRating = userRating.vibe > 0 || userRating.safety > 0 || 
+                     userRating.uniqueness > 0 || userRating.crowdLevel > 0;
+    
+    if (!hasRating) {
+      Alert.alert('Error', 'Please provide at least one rating');
+      return;
+    }
 
-      await apiService.createComment(formData);
+    try {
+      // Use the dedicated rating endpoint
+      await apiService.rateSpot(spot!._id, userRating);
       setShowRatingModal(false);
       setUserRating({ vibe: 0, safety: 0, uniqueness: 0, crowdLevel: 0 });
       Alert.alert('Success', 'Rating submitted successfully!');
@@ -607,33 +603,11 @@ export default function SpotDetailsScreen() {
         </View>
       </ScrollView>
 
-      {/* Image Modal */}
-      <Modal
-        visible={showImageModal}
-        transparent={true}
-        onRequestClose={() => setShowImageModal(false)}
-      >
-        <View style={styles.modalOverlay}>
-          <TouchableOpacity
-            style={styles.modalCloseButton}
-            onPress={() => setShowImageModal(false)}
-          >
-            <Ionicons name="close" size={24} color="white" />
-          </TouchableOpacity>
-          {spot?.images && (
-            <Image
-              source={{ uri: spot.images[currentImageIndex].url }}
-              style={styles.modalImage}
-              resizeMode="contain"
-            />
-          )}
-        </View>
-      </Modal>
-
       {/* Rating Modal */}
       <Modal
         visible={showRatingModal}
-        transparent={true}
+        transparent
+        animationType="fade"
         onRequestClose={() => setShowRatingModal(false)}
       >
         <View style={styles.modalOverlay}>
@@ -642,22 +616,30 @@ export default function SpotDetailsScreen() {
             
             <View style={styles.ratingModalItem}>
               <Text style={[styles.ratingModalLabel, { color: colors.text }]}>Vibe</Text>
-              {renderStars(userRating.vibe, (value) => setUserRating({...userRating, vibe: value}))}
+              {renderStars(userRating.vibe, (value) => 
+                setUserRating(prev => ({ ...prev, vibe: value }))
+              )}
             </View>
             
             <View style={styles.ratingModalItem}>
               <Text style={[styles.ratingModalLabel, { color: colors.text }]}>Safety</Text>
-              {renderStars(userRating.safety, (value) => setUserRating({...userRating, safety: value}))}
+              {renderStars(userRating.safety, (value) => 
+                setUserRating(prev => ({ ...prev, safety: value }))
+              )}
             </View>
             
             <View style={styles.ratingModalItem}>
               <Text style={[styles.ratingModalLabel, { color: colors.text }]}>Uniqueness</Text>
-              {renderStars(userRating.uniqueness, (value) => setUserRating({...userRating, uniqueness: value}))}
+              {renderStars(userRating.uniqueness, (value) => 
+                setUserRating(prev => ({ ...prev, uniqueness: value }))
+              )}
             </View>
             
             <View style={styles.ratingModalItem}>
               <Text style={[styles.ratingModalLabel, { color: colors.text }]}>Crowd Level</Text>
-              {renderStars(userRating.crowdLevel, (value) => setUserRating({...userRating, crowdLevel: value}))}
+              {renderStars(userRating.crowdLevel, (value) => 
+                setUserRating(prev => ({ ...prev, crowdLevel: value }))
+              )}
             </View>
 
             <TouchableOpacity
@@ -676,16 +658,17 @@ export default function SpotDetailsScreen() {
 
             <View style={styles.modalButtons}>
               <TouchableOpacity
-                style={[styles.modalButton, { backgroundColor: colors.surface }]}
+                style={[styles.modalButton, { backgroundColor: colors.textTertiary }]}
                 onPress={() => setShowRatingModal(false)}
               >
-                <Text style={[styles.modalButtonText, { color: colors.text }]}>Cancel</Text>
+                <Text style={[styles.modalButtonText, { color: colors.background }]}>Cancel</Text>
               </TouchableOpacity>
+              
               <TouchableOpacity
                 style={[styles.modalButton, { backgroundColor: colors.primary }]}
                 onPress={handleSubmitRating}
               >
-                <Text style={[styles.modalButtonText, { color: 'white' }]}>Submit</Text>
+                <Text style={[styles.modalButtonText, { color: 'white' }]}>Submit Rating</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -695,7 +678,8 @@ export default function SpotDetailsScreen() {
       {/* Comment Modal */}
       <Modal
         visible={showCommentModal}
-        transparent={true}
+        transparent
+        animationType="fade"
         onRequestClose={() => setShowCommentModal(false)}
       >
         <View style={styles.modalOverlay}>
@@ -703,10 +687,14 @@ export default function SpotDetailsScreen() {
             <Text style={[styles.modalTitle, { color: colors.text }]}>Share Your Experience</Text>
             
             <TextInput
-              style={[styles.commentInput, { backgroundColor: colors.surface, borderColor: colors.border, color: colors.text }]}
+              style={[styles.commentInput, { 
+                backgroundColor: colors.surface, 
+                borderColor: colors.border, 
+                color: colors.text 
+              }]}
               value={newComment}
               onChangeText={setNewComment}
-              placeholder="Share your experience at this spot..."
+              placeholder="Tell us about your experience at this spot..."
               placeholderTextColor={colors.textTertiary}
               multiline
               numberOfLines={4}
@@ -728,19 +716,42 @@ export default function SpotDetailsScreen() {
 
             <View style={styles.modalButtons}>
               <TouchableOpacity
-                style={[styles.modalButton, { backgroundColor: colors.surface }]}
+                style={[styles.modalButton, { backgroundColor: colors.textTertiary }]}
                 onPress={() => setShowCommentModal(false)}
               >
-                <Text style={[styles.modalButtonText, { color: colors.text }]}>Cancel</Text>
+                <Text style={[styles.modalButtonText, { color: colors.background }]}>Cancel</Text>
               </TouchableOpacity>
+              
               <TouchableOpacity
                 style={[styles.modalButton, { backgroundColor: colors.primary }]}
                 onPress={handleSubmitComment}
               >
-                <Text style={[styles.modalButtonText, { color: 'white' }]}>Post</Text>
+                <Text style={[styles.modalButtonText, { color: 'white' }]}>Post Comment</Text>
               </TouchableOpacity>
             </View>
           </View>
+        </View>
+      </Modal>
+
+      {/* Image Modal */}
+      <Modal
+        visible={showImageModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowImageModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <TouchableOpacity
+            style={styles.modalCloseButton}
+            onPress={() => setShowImageModal(false)}
+          >
+            <Ionicons name="close" size={24} color="white" />
+          </TouchableOpacity>
+          <Image
+            source={{ uri: spot?.images[currentImageIndex]?.url }}
+            style={styles.modalImage}
+            resizeMode="contain"
+          />
         </View>
       </Modal>
     </>
