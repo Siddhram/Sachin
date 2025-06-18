@@ -126,8 +126,15 @@ const rateLimitAction = (action, maxAttempts = 5, windowMs = 15 * 60 * 1000) => 
   const attempts = new Map();
 
   return (req, res, next) => {
-    const userId = req.user._id.toString();
-    const key = `${action}:${userId}`;
+    let identifier;
+    if (req.user && req.user._id) {
+      identifier = req.user._id.toString();
+    } else if (req.body && req.body.email) {
+      identifier = req.body.email.toLowerCase();
+    } else {
+      identifier = req.ip;
+    }
+    const key = `${action}:${identifier}`;
     const now = Date.now();
     
     const userAttempts = attempts.get(key) || [];
