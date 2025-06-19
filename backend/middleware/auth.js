@@ -1,7 +1,6 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 
-// Middleware to verify JWT token
 const authenticateToken = async (req, res, next) => {
   try {
     const authHeader = req.headers['authorization'];
@@ -24,7 +23,6 @@ const authenticateToken = async (req, res, next) => {
       });
     }
 
-    // Update last active timestamp
     await user.updateLastActive();
 
     req.user = user;
@@ -52,7 +50,6 @@ const authenticateToken = async (req, res, next) => {
   }
 };
 
-// Optional authentication middleware (doesn't fail if no token)
 const optionalAuth = async (req, res, next) => {
   try {
     const authHeader = req.headers['authorization'];
@@ -70,12 +67,12 @@ const optionalAuth = async (req, res, next) => {
     
     next();
   } catch (error) {
-    // Continue without authentication if token is invalid
+    
     next();
   }
 };
 
-// Middleware to check if user is the owner of a resource
+
 const checkOwnership = (modelName) => {
   return async (req, res, next) => {
     try {
@@ -110,7 +107,7 @@ const checkOwnership = (modelName) => {
   };
 };
 
-// Middleware to check if user is verified
+
 const requireVerification = (req, res, next) => {
   if (!req.user.isVerified) {
     return res.status(403).json({
@@ -121,7 +118,6 @@ const requireVerification = (req, res, next) => {
   next();
 };
 
-// Middleware to rate limit specific actions
 const rateLimitAction = (action, maxAttempts = 5, windowMs = 15 * 60 * 1000) => {
   const attempts = new Map();
 
